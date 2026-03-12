@@ -1,0 +1,41 @@
+<section class="headline-section">
+    <p class="kicker">Resultados Parciales</p>
+    <h1><span class="line2">en progreso</span></h1>
+</section>
+
+<div id="stats-bar" class="stats-bar" style="display:none">
+    <div class="stat">
+        <div class="stat-value" id="total-votes">—</div>
+        <div class="stat-label">Total votos</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value" id="candidates-count">—</div>
+        <div class="stat-label">Candidatos</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value" id="leader-pct">—</div>
+        <div class="stat-label">Puntero</div>
+    </div>
+</div>
+
+<div class="privacy-notice">
+    <span class="privacy-icon">🔒</span>
+    <span>Los nombres de los candidatos están <strong>ocultados</strong> para preservar la imparcialidad del proceso. Solo se muestran porcentajes y departamentos.</span>
+</div>
+
+<div id="results-container">
+    <div class="loading">
+        <div class="spinner"></div>
+        Cargando resultados...
+    </div>
+</div>
+
+<div id="chart-section" class="chart-section" style="display:none">
+    <div class="section-label">Distribución Gráfica</div>
+    <div class="chart-bars" id="chart-bars"></div>
+</div>
+
+<div class="footer-actions" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <a href="#vote" class="btn-back">← Volver a Votar</a>
+    <button class="btn-refresh" id="btn-refresh">↻ Actualizar Resultados</button>
+</div>

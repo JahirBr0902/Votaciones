@@ -1,0 +1,241 @@
+:root {
+  --ink: #0d0d0d;
+  --paper: #f8fafc;
+  --accent: #1e3a8a;
+  --accent-light: #3b82f6;
+  --accent-pale: #eff6ff;
+  --company-blue: #2563eb;
+  --muted: #64748b;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --bar-3: #0f172a;
+  --bar-4: #334155;
+  --bar-5: #475569;
+  --bar-6: #94a3b8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(30, 58, 138, 0.03) 39px, rgba(30, 58, 138, 0.03) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(30, 58, 138, 0.03) 39px, rgba(30, 58, 138, 0.03) 40px);
+}
+
+header {
+  border-bottom: 2px solid var(--ink);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.masthead { display: flex; flex-direction: column; }
+
+.vol-info {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.3rem;
+}
+
+.site-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.site-title span { color: var(--accent); }
+
+.header-meta {
+  text-align: right;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.header-meta strong {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  color: var(--company-blue);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.divider-ornament {
+  text-align: center;
+  padding: 0.8rem 0;
+  font-size: 0.9rem;
+  color: var(--accent);
+  letter-spacing: 0.5em;
+  border-bottom: 1px solid var(--border);
+}
+
+main { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
+
+.headline-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  border-bottom: 3px double var(--border);
+  padding-bottom: 2rem;
+}
+
+.kicker {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--company-blue);
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.kicker::before, .kicker::after { content: ''; width: 40px; height: 1px; background: var(--company-blue); }
+
+h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 8vw, 5.5rem); line-height: 0.95; letter-spacing: 0.02em; margin-bottom: 1rem; }
+h1 .line2 { color: var(--accent); display: block; font-size: 0.6em; letter-spacing: 0.15em; }
+
+.subhead { font-size: 0.9rem; color: var(--muted); max-width: 400px; margin: 0 auto; line-height: 1.6; font-weight: 300; }
+
+.employees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+.employee-card { background: var(--card-bg); border: 1.5px solid var(--border); padding: 2rem; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden; animation: fadeUp 0.4s ease both; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.employee-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform 0.25s ease; }
+.employee-card:hover { transform: translateY(-3px); box-shadow: 8px 8px 0 var(--border); border-color: var(--accent); }
+.employee-card:hover::before { transform: scaleY(1); }
+.employee-card.selected { border-color: var(--accent); background: #f0f9ff; box-shadow: 8px 8px 0 var(--accent-light); }
+.employee-card.selected::before { transform: scaleY(1); background: var(--company-blue); }
+
+.card-number { position: absolute; top: 1rem; left: 1.2rem; font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--border); line-height: 1; transition: color 0.2s; }
+.avatar, .avatar-img { 
+  width: 120px; 
+  height: 120px; 
+  margin-bottom: 1.5rem; 
+  border-radius: 50%;
+  border: 4px solid var(--border);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.avatar-img {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: grayscale(20%);
+}
+
+.employee-card:hover .avatar-img, .employee-card.selected .avatar-img {
+  border-color: var(--accent);
+  transform: scale(1.05);
+  filter: grayscale(0%);
+}
+
+.avatar { 
+  background: var(--ink); 
+  color: var(--paper); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-family: 'Bebas Neue', sans-serif; 
+  font-size: 1.8rem; 
+  letter-spacing: 0.05em; 
+}
+
+.employee-name { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.3rem; line-height: 1.2; color: var(--ink); }
+.employee-dept { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+.check-mark { position: absolute; bottom: 1rem; right: 1rem; width: 20px; height: 20px; background: var(--accent); display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0); transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); font-size: 0.7rem; color: var(--ink); font-weight: bold; }
+.employee-card.selected .check-mark { opacity: 1; transform: scale(1); }
+
+.stats-bar { display: flex; gap: 2px; margin-bottom: 3rem; border: 1.5px solid var(--border); background: var(--card-bg); padding: 1.5rem; align-items: center; justify-content: space-around; }
+.stat { text-align: center; padding: 0 1.5rem; }
+.stat + .stat { border-left: 1px solid var(--border); }
+.stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; color: var(--ink); }
+.stat-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+
+.privacy-notice { background: var(--ink); color: var(--paper); padding: 0.9rem 1.5rem; font-size: 0.78rem; letter-spacing: 0.05em; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--accent); }
+.result-row { display: grid; grid-template-columns: 3rem 1fr auto; gap: 1rem; align-items: center; padding: 1.4rem 1.5rem; background: var(--card-bg); border: 1.5px solid var(--border); border-top: none; position: relative; overflow: hidden; opacity: 0; transform: translateX(-20px); transition: opacity 0.4s ease, transform 0.4s ease; }
+.result-row:first-child { border-top: 1.5px solid var(--border); }
+.result-row.animate-in { opacity: 1; transform: translateX(0); }
+.result-row.rank-1 { background: var(--accent-pale); border-color: var(--accent); }
+
+.progress-bg { position: absolute; left: 0; top: 0; bottom: 0; opacity: 0.06; transition: width 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); width: 0; }
+.percentage { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; line-height: 1; color: var(--ink); }
+.rank-1 .percentage { color: var(--company-blue); }
+
+.chart-bars { display: flex; align-items: flex-end; gap: 0.8rem; height: 180px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 0.5rem; }
+.bar-fill { width: 100%; transition: height 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); height: 0; position: relative; }
+.bar-fill.rank-1 { background: var(--accent); }
+.bar-fill.rank-2 { background: var(--accent-light); }
+.bar-fill.rank-3 { background: var(--bar-3); }
+.bar-fill.rank-4 { background: var(--bar-4); }
+.bar-fill.rank-5 { background: var(--bar-5); }
+.bar-fill.rank-6 { background: var(--bar-6); }
+
+.btn-vote, .btn-refresh, .btn-back { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.15em; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.btn-vote { font-size: 1.4rem; background: var(--ink); color: var(--paper); border: none; padding: 1rem 3.5rem; gap: 0.8rem; }
+.btn-refresh { font-size: 1.1rem; background: var(--accent); color: var(--paper); border: none; padding: 0.7rem 2rem; }
+.btn-back { font-size: 1.1rem; background: transparent; color: var(--ink); border: 1.5px solid var(--ink); padding: 0.7rem 2rem; }
+
+.toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--ink); color: var(--paper); padding: 1rem 1.5rem; font-size: 0.85rem; letter-spacing: 0.05em; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 999; max-width: 320px; border-left: 4px solid var(--accent); }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.error { border-left-color: var(--company-blue); }
+
+.loading { text-align: center; padding: 4rem; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; }
+/* Secciones Colapsables Admin */
+.collapsible-section { margin-bottom: 1.5rem; border: 2px solid var(--ink); background: var(--card-bg); overflow: hidden; }
+.collapsible-header { 
+    padding: 1.2rem 2rem; 
+    background: var(--paper); 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+.collapsible-header:hover { background: var(--accent-pale); }
+.collapsible-header h2, .collapsible-header h3 { margin: 0; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.05em; }
+.collapsible-content { padding: 2rem; display: none; border-top: 1px solid var(--border); animation: slideDown 0.3s ease-out; }
+.collapsible-section.active .collapsible-content { display: block; }
+.collapsible-header::after { content: '▼'; font-size: 0.8rem; color: var(--muted); transition: transform 0.3s; }
+.collapsible-section.active .collapsible-header::after { transform: rotate(180deg); }
+
+/* Efecto de Votado por Empresa */
+.company-voted .employee-card { 
+    filter: grayscale(1); 
+    opacity: 0.6; 
+    pointer-events: none; 
+    cursor: default; 
+}
+.company-voted .employee-card.selected { 
+    filter: grayscale(0); 
+    opacity: 1; 
+    border-color: var(--company-blue); 
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+    pointer-events: auto; /* Permitir clics para deseleccionar */
+    cursor: pointer;
+}
+.company-voted .employee-card.selected::before {
+    background: var(--company-blue);
+}
