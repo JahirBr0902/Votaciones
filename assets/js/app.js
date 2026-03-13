@@ -229,6 +229,8 @@ const App = {
         
         try {
             const successIds = [];
+            const errors = [];
+            
             for (const id of votes) {
                 const res = await fetch(this.apiBase, {
                     method: 'POST',
@@ -236,7 +238,11 @@ const App = {
                     body: JSON.stringify({ action: 'vote', employee_id: id, fingerprint })
                 });
                 const data = await res.json();
-                if (data.success) successIds.push(id);
+                if (data.success) {
+                    successIds.push(id);
+                } else {
+                    errors.push(data.message || 'Error desconocido');
+                }
             }
 
             if (successIds.length > 0) {
@@ -246,6 +252,14 @@ const App = {
 
                 await Swal.fire({ title: '¡Éxito!', text: 'Votos registrados.', icon: 'success', timer: 2000, showConfirmButton: false });
                 window.location.hash = '#results';
+            } else if (errors.length > 0) {
+                // Mostrar el primer error encontrado (usualmente "voto previo detectado")
+                await Swal.fire({ 
+                    title: 'No se pudo votar', 
+                    text: errors[0], 
+                    icon: 'warning',
+                    confirmButtonColor: '#1e3a8a'
+                });
             }
         } catch (e) {
             this.showToast('Error al votar', true);
