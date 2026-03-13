@@ -228,9 +228,7 @@ const App = {
         const fingerprint = this.getFingerprint();
         
         try {
-            const successIds = [];
-            const errors = [];
-            
+            const results = [];
             for (const id of votes) {
                 const res = await fetch(this.apiBase, {
                     method: 'POST',
@@ -238,28 +236,46 @@ const App = {
                     body: JSON.stringify({ action: 'vote', employee_id: id, fingerprint })
                 });
                 const data = await res.json();
-                if (data.success) {
-                    successIds.push(id);
-                } else {
-                    errors.push(data.message || 'Error desconocido');
-                }
+                results.push(data);
             }
 
-            if (successIds.length > 0) {
-                // Guardar en local el histórico de votos
-                this.myVotes = [...new Set([...this.myVotes, ...successIds])];
-                localStorage.setItem('witmac_votos_2026', JSON.stringify(this.myVotes));
+            const successes = results.filter(r => r.success);
+            const errors = results.filter(r => !r.success);
 
-                await Swal.fire({ title: '¡Éxito!', text: 'Votos registrados.', icon: 'success', timer: 2000, showConfirmButton: false });
-                window.location.hash = '#results';
-            } else if (errors.length > 0) {
-                // Mostrar el primer error encontrado (usualmente "voto previo detectado")
+            if (errors.length > 0) {
+                let errorMsg = "";
+                if (errors.length > 1) {
+                    // Si ambos fallaron por voto previo, mostramos un mensaje unificado elegante
+                    errorMsg = "Se detectaron votos previos para Witmac y RyP desde este dispositivo.";
+                } else {
+                    // Si solo falló uno, mostramos su mensaje original
+                    errorMsg = errors[0].message;
+                }
+
                 await Swal.fire({ 
-                    title: 'No se pudo votar', 
-                    text: errors[0], 
+                    title: 'Aviso de seguridad', 
+                    text: errorMsg, 
                     icon: 'warning',
                     confirmButtonColor: '#1e3a8a'
                 });
+                
+                if (successes.length === 0) return;
+            }
+
+            if (successes.length > 0) {
+                // Si hubo éxitos, actualizamos el localstorage
+                const successIds = votes.filter((_, i) => results[i].success);
+                this.myVotes = [...new Set([...this.myVotes, ...successIds])];
+                localStorage.setItem('witmac_votos_2026', JSON.stringify(this.myVotes));
+
+                await Swal.fire({ 
+                    title: '¡Éxito!', 
+                    text: successes.length === 1 ? 'Voto registrado.' : 'Votos registrados.', 
+                    icon: 'success', 
+                    timer: 2000, 
+                    showConfirmButton: false 
+                });
+                window.location.hash = '#results';
             }
         } catch (e) {
             this.showToast('Error al votar', true);

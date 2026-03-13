@@ -56,7 +56,7 @@ class VoteModel {
             // 2. Validar por IP y Fingerprint en la BD (buscando votos previos en la MISMA empresa)
             $queryCheck = "SELECT v.id FROM votes v
                            JOIN employees e ON v.employee_id = e.id
-                           WHERE (v.voter_ip = ? OR v.voter_fingerprint = ?) 
+                           WHERE (v.voter_ip = ? AND v.voter_fingerprint = ?) 
                            AND e.company = ?
                            AND EXTRACT(MONTH FROM v.voted_at) = ? 
                            AND EXTRACT(YEAR FROM v.voted_at) = ?";
