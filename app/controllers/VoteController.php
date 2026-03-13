@@ -37,8 +37,9 @@ class VoteController {
         $input = json_decode(file_get_contents('php://input'), true);
         $employeeId = $input['employee_id'] ?? 0;
         $fingerprint = $input['fingerprint'] ?? null;
+        $reason = $input['reason'] ?? '';
 
-        return $this->model->vote((int)$employeeId, $fingerprint);
+        return $this->model->vote((int)$employeeId, $fingerprint, $reason);
     }
 
     public function getResults() {
@@ -85,5 +86,9 @@ class VoteController {
 
     public function deleteEmployee($id) {
         return $this->model->deleteEmployee($id);
+    }
+
+    public function getReasons($employeeId = null) {
+        return $this->model->getReasons($employeeId);
     }
 }

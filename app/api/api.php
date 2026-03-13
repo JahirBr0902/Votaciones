@@ -46,6 +46,15 @@ switch ($action) {
     case 'get_results':
         echo json_encode($controller->getResults());
         break;
+    case 'get_public_reasons':
+        $employeeId = $_GET['employee_id'] ?? null;
+        echo json_encode($controller->getReasons($employeeId));
+        break;
+    case 'get_reasons':
+        checkAdmin();
+        $employeeId = $_GET['employee_id'] ?? null;
+        echo json_encode($controller->getReasons($employeeId));
+        break;
     case 'get_voting_end_time':
         echo json_encode(['success' => true, 'end_time' => $adminController->getEndTime()]);
         break;

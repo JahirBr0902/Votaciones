@@ -10,8 +10,12 @@ const App = {
     myVotes: [], // Para guardar localmente por quién voté
 
     init() {
+        // Generar clave dinámica para el mes actual (ej. witmac_votos_03_2026)
+        const now = new Date();
+        this.storageKey = `witmac_votos_${String(now.getMonth() + 1).padStart(2, '0')}_${now.getFullYear()}`;
+
         // Cargar votos guardados del almacenamiento local
-        const saved = localStorage.getItem('witmac_votos_2026');
+        const saved = localStorage.getItem(this.storageKey);
         if (saved) this.myVotes = JSON.parse(saved);
 
         window.addEventListener('hashchange', () => this.route());
@@ -225,15 +229,43 @@ const App = {
         });
 
         if (!result.isConfirmed) return;
+
         const fingerprint = this.getFingerprint();
+        const results = [];
         
         try {
-            const results = [];
             for (const id of votes) {
+                // Obtener el nombre del candidato seleccionado para el título del prompt
+                const card = document.querySelector(`.employee-card[data-id="${id}"]`);
+                const name = card ? card.querySelector('.employee-name').textContent : 'este candidato';
+
+                const { value: reason } = await Swal.fire({
+                    title: `Motivo para ${name}`,
+                    input: 'textarea',
+                    inputLabel: `¿Por qué elegiste a ${name}? (Obligatorio)`,
+                    inputPlaceholder: 'Escribe aquí tus razones...',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1e3a8a',
+                    confirmButtonText: 'Guardar y continuar',
+                    cancelButtonText: 'Cancelar voto',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return '¡Debes escribir un motivo para continuar!';
+                        }
+                    }
+                });
+
+                if (!reason) return; // Cancelar si no hay motivo
+
                 const res = await fetch(this.apiBase, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'vote', employee_id: id, fingerprint })
+                    body: JSON.stringify({ 
+                        action: 'vote', 
+                        employee_id: id, 
+                        fingerprint,
+                        reason: reason
+                    })
                 });
                 const data = await res.json();
                 results.push(data);
@@ -266,7 +298,7 @@ const App = {
                 // Si hubo éxitos, actualizamos el localstorage
                 const successIds = votes.filter((_, i) => results[i].success);
                 this.myVotes = [...new Set([...this.myVotes, ...successIds])];
-                localStorage.setItem('witmac_votos_2026', JSON.stringify(this.myVotes));
+                localStorage.setItem(this.storageKey, JSON.stringify(this.myVotes));
 
                 await Swal.fire({ 
                     title: '¡Éxito!', 
@@ -407,11 +439,17 @@ const App = {
                 winners.forEach(w => {
                     const isMyVote = this.myVotes.includes(w.id);
                     html += `
-                        <div class="winner-card" style="margin: 1rem; flex: 1; min-width: 280px; padding: 2rem; border: 2px solid var(--accent); background: white; box-shadow: 15px 15px 0 var(--accent-pale); position:relative;">
+                        <div class="winner-card" style="margin: 1rem; flex: 1; min-width: 280px; padding: 2rem; border: 2px solid var(--accent); background: white; box-shadow: 15px 15px 0 var(--accent-pale); position:relative; overflow:hidden;">
                             ${isMyVote ? '<div style="position:absolute; top:1rem; right:1rem; background:var(--company-blue); color:white; font-size:0.6rem; padding:0.3rem 0.6rem; font-weight:bold;">TU VOTO</div>' : ''}
                             <div class="avatar-img" style="width: 150px; height: 180px; border-radius: 10px; margin: 0 auto 1.5rem; background-image: url('${w.image || 'assets/img/empleados/default.jpg'}'); border-color: var(--company-blue); border-width: 6px;"></div>
                             <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem;">${w.name || w.alias}</h3>
                             <p style="text-transform: uppercase; font-size: 0.8rem;">${w.company === 'RyP' ? 'RyP' : w.company} - ${w.department}</p>
+                            
+                            <div class="reasons-ticker" id="ticker-${w.id}">
+                                <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Feedback de los votantes:</div>
+                                <div class="ticker-content"></div>
+                            </div>
+
                             <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
                                 <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--accent);">${w.votes} VOTOS</span>
                             </div>
@@ -424,6 +462,40 @@ const App = {
                         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem;">${html}</div>
                         <div style="margin-top: 3rem;"><a href="#results" class="btn-refresh">Ver Tabla de Resultados</a></div>
                     </div>`;
+
+                // Iniciar los tickers para cada ganador
+                winners.forEach(w => this.startReasonsTicker(w.id));
+            }
+        } catch (e) {}
+    },
+
+    async startReasonsTicker(employeeId) {
+        try {
+            const res = await fetch(`${this.apiBase}?action=get_public_reasons&employee_id=${employeeId}`);
+            const data = await res.json();
+            if (data.success && data.reasons.length > 0) {
+                const container = document.querySelector(`#ticker-${employeeId} .ticker-content`);
+                if (!container) return;
+
+                let index = 0;
+                const showNextReason = () => {
+                    const r = data.reasons[index];
+                    const bubble = document.createElement('div');
+                    bubble.className = 'reason-bubble';
+                    bubble.textContent = `"${r.reason}"`;
+                    
+                    container.appendChild(bubble);
+                    
+                    // Mantener solo los últimos 3 mensajes visibles para no saturar
+                    if (container.children.length > 3) {
+                        container.removeChild(container.firstChild);
+                    }
+
+                    index = (index + 1) % data.reasons.length;
+                };
+
+                showNextReason(); // Mostrar el primero inmediatamente
+                setInterval(showNextReason, 4000); // Cambiar cada 4 segundos
             }
         } catch (e) {}
     },

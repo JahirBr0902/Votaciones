@@ -160,6 +160,8 @@ const Admin = {
 
             const row = document.createElement('div');
             row.className = `result-row animate-in rank-${r.rank}`;
+            row.style.cursor = 'pointer';
+            row.onclick = () => this.viewReasons(r.id, r.name || r.alias);
             row.innerHTML = `
                 <div class="progress-bg" style="background:${App.getBarColor(r.rank)}; width: ${r.percentage}%"></div>
                 <div class="rank-badge">${r.rank}</div>
@@ -170,11 +172,66 @@ const Admin = {
                 <div class="vote-display">
                     <div class="percentage">${r.percentage}%</div>
                     <div class="vote-count">${r.votes} votos</div>
+                    <div style="font-size: 0.5rem; text-decoration: underline; color: var(--muted); margin-top: 0.2rem;">Ver motivos</div>
                 </div>
             `;
             list.appendChild(row);
         });
         container.appendChild(list);
+    },
+
+    async viewReasons(employeeId = null, name = "Todos") {
+        try {
+            const url = employeeId 
+                ? `${this.apiBase}?action=get_reasons&employee_id=${employeeId}`
+                : `${this.apiBase}?action=get_reasons`;
+            
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            if (data.success) {
+                if (data.reasons.length === 0) {
+                    Swal.fire('Sin motivos', 'No hay motivos registrados para este periodo.', 'info');
+                    return;
+                }
+
+                let html = `
+                    <div style="text-align: left; max-height: 400px; overflow-y: auto; padding: 1rem;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border);">
+                                    <th style="padding: 0.5rem; text-align: left;">Candidato</th>
+                                    <th style="padding: 0.5rem; text-align: left;">Motivo</th>
+                                    <th style="padding: 0.5rem; text-align: right;">Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.reasons.forEach(r => {
+                    const date = new Date(r.voted_at).toLocaleDateString();
+                    html += `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 0.5rem; vertical-align: top;"><strong>${r.candidate}</strong></td>
+                            <td style="padding: 0.5rem; color: var(--ink); line-height: 1.4;">${r.reason}</td>
+                            <td style="padding: 0.5rem; text-align: right; font-size: 0.65rem; color: var(--muted);">${date}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+
+                Swal.fire({
+                    title: `Motivos de Elección: ${name}`,
+                    html: html,
+                    width: '800px',
+                    confirmButtonColor: '#1e3a8a',
+                    confirmButtonText: 'Cerrar'
+                });
+            }
+        } catch (e) {
+            App.showToast("Error al cargar motivos", true);
+        }
     },
 
     async resetVotes() {

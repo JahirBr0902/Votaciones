@@ -171,6 +171,7 @@ $anioActual = date('Y');
                     </select>
                 </div>
                 <button onclick="Admin.loadPeriodResults()" class="btn-filter">Consultar</button>
+                <button onclick="Admin.viewReasons()" class="btn-filter" style="background: var(--ink); margin-left: auto;">Ver Motivos</button>
             </div>
 
             <div id="stats-bar" class="stats-bar" style="display:none; margin-bottom: 2rem;">

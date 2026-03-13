@@ -239,3 +239,37 @@ h1 .line2 { color: var(--accent); display: block; font-size: 0.6em; letter-spaci
 .company-voted .employee-card.selected::before {
     background: var(--company-blue);
 }
+
+/* Ganador - Chat de Motivos */
+.reasons-ticker {
+    margin-top: 1.5rem;
+    height: 120px;
+    overflow: hidden;
+    position: relative;
+    border-top: 1px dashed var(--border);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.reason-bubble {
+    background: var(--accent-pale);
+    color: var(--ink);
+    padding: 0.6rem 1rem;
+    border-radius: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    text-align: left;
+    border-bottom-left-radius: 0;
+    animation: slideInUpChat 0.5s ease-out forwards;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+    width: fit-content;
+    max-width: 90%;
+}
+
+@keyframes slideInUpChat {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

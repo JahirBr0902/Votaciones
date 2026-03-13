@@ -23,7 +23,7 @@ class VoteModel {
         return $stmt->fetchAll();
     }
 
-    public function vote($employeeId, $fingerprint = null) {
+    public function vote($employeeId, $fingerprint = null, $reason = '') {
         try {
             require_once __DIR__ . '/AdminModel.php';
             $adminModel = new AdminModel();
@@ -69,9 +69,9 @@ class VoteModel {
             }
 
             // Registrar el voto
-            $query = "INSERT INTO votes (employee_id, voter_session_id, voter_ip, voter_fingerprint) VALUES (?, ?, ?, ?)";
+            $query = "INSERT INTO votes (employee_id, voter_session_id, voter_ip, voter_fingerprint, reason) VALUES (?, ?, ?, ?, ?)";
             $stmt = $this->db->prepare($query);
-            $stmt->execute([$employeeId, $sessionId, $ip, $fingerprint]);
+            $stmt->execute([$employeeId, $sessionId, $ip, $fingerprint, $reason]);
 
             $_SESSION[$sessionKey] = true;
             return ['success' => true, 'message' => "Voto para $targetCompany registrado correctamente."];
@@ -187,6 +187,32 @@ class VoteModel {
             $query = "UPDATE employees SET active = FALSE WHERE id = ?";
             $stmt = $this->db->prepare($query);
             return ['success' => $stmt->execute([$id])];
+        } catch (\PDOException $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    public function getReasons($employeeId = null) {
+        try {
+            $month = date('m');
+            $year = date('Y');
+            $sql = "SELECT v.reason, e.name as candidate, v.voted_at 
+                    FROM votes v 
+                    JOIN employees e ON v.employee_id = e.id 
+                    WHERE v.reason IS NOT NULL AND v.reason != '' 
+                    AND EXTRACT(MONTH FROM v.voted_at) = ? 
+                    AND EXTRACT(YEAR FROM v.voted_at) = ?";
+            
+            $params = [$month, $year];
+            if ($employeeId) {
+                $sql .= " AND v.employee_id = ?";
+                $params[] = $employeeId;
+            }
+            $sql .= " ORDER BY v.voted_at DESC";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return ['success' => true, 'reasons' => $stmt->fetchAll()];
         } catch (\PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
