@@ -106,6 +106,29 @@ $anioActual = date('Y');
         </div>
     </div>
 
+    <!-- SECCIÓN NGROK: ACCESO PÚBLICO -->
+    <div class="collapsible-section" id="section-ngrok">
+        <div class="collapsible-header" onclick="toggleSection('section-ngrok')">
+            <h3>Acceso Público (Ngrok)</h3>
+        </div>
+        <div class="collapsible-content">
+            <div class="admin-controls">
+                <div class="control-card" style="grid-column: span 2;">
+                    <h4 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem;">Túnel de Acceso Externo</h4>
+                    <p style="font-size: 0.7rem; color: var(--muted); margin-bottom: 1rem;">Usa esto para generar un link que puedas compartir fuera de la red local.</p>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="text" id="ngrok-url" class="select-control" readonly placeholder="No hay túnel activo" style="flex: 1; font-family: monospace; font-size: 0.8rem; background: var(--paper);">
+                        <button onclick="Admin.copyNgrok()" class="btn-filter" style="background: var(--ink); height: 38px;">Copiar</button>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                        <button id="btn-start-ngrok" onclick="Admin.startNgrok()" class="btn-filter" style="flex: 1;">Iniciar Túnel</button>
+                        <button id="btn-stop-ngrok" onclick="Admin.stopNgrok()" class="btn-danger" style="flex: 1; background: #dc2626;">Detener</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SECCIÓN 2: GESTIÓN DE CANDIDATOS -->
     <div class="collapsible-section" id="section-employees">
         <div class="collapsible-header" onclick="toggleSection('section-employees')">

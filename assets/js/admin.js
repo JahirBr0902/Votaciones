@@ -3,6 +3,7 @@ const Admin = {
 
     init() {
         this.loadStatus();
+        this.loadNgrokStatus();
         this.loadPeriodResults();
         this.loadAdminEmployees();
         this.bindEvents();
@@ -370,6 +371,98 @@ const Admin = {
             } catch (e) {
                 App.showToast("Error al eliminar", true);
             }
+        }
+    },
+
+    // NGROK METHODS
+    async startNgrok() {
+        const btn = document.getElementById('btn-start-ngrok');
+        const urlInput = document.getElementById('ngrok-url');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Iniciando...';
+        }
+        if (urlInput) urlInput.placeholder = 'Conectando con ngrok...';
+
+        try {
+            const res = await fetch(this.apiBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'start_ngrok' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (urlInput) urlInput.value = data.url;
+                App.showToast("Túnel iniciado correctamente", false);
+            } else {
+                App.showToast(data.message, true);
+                if (urlInput) urlInput.placeholder = 'Error al iniciar';
+            }
+        } catch (e) {
+            App.showToast("Error de conexión", true);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Iniciar Túnel';
+            }
+            this.loadNgrokStatus();
+        }
+    },
+
+    async stopNgrok() {
+        try {
+            const res = await fetch(this.apiBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'stop_ngrok' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const urlInput = document.getElementById('ngrok-url');
+                if (urlInput) {
+                    urlInput.value = '';
+                    urlInput.placeholder = 'Túnel detenido';
+                }
+                App.showToast("Túnel detenido", false);
+            }
+        } catch (e) {
+            App.showToast("Error al detener", true);
+        } finally {
+            this.loadNgrokStatus();
+        }
+    },
+
+    async loadNgrokStatus() {
+        try {
+            const res = await fetch(`${this.apiBase}?action=get_ngrok_status`);
+            const data = await res.json();
+            const urlInput = document.getElementById('ngrok-url');
+            const btnStart = document.getElementById('btn-start-ngrok');
+            const btnStop = document.getElementById('btn-stop-ngrok');
+
+            if (data.success && data.url) {
+                if (urlInput) urlInput.value = data.url;
+                if (btnStart) btnStart.style.display = 'none';
+                if (btnStop) btnStop.style.display = 'block';
+            } else {
+                if (urlInput) {
+                    urlInput.value = '';
+                    urlInput.placeholder = 'No hay túnel activo';
+                }
+                if (btnStart) btnStart.style.display = 'block';
+                if (btnStop) btnStop.style.display = 'none';
+            }
+        } catch (e) {}
+    },
+
+    copyNgrok() {
+        const urlInput = document.getElementById('ngrok-url');
+        if (urlInput && urlInput.value) {
+            urlInput.select();
+            document.execCommand('copy');
+            App.showToast("Enlace copiado al portapapeles", false);
+        } else {
+            App.showToast("No hay enlace para copiar", true);
         }
     }
 };

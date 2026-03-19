@@ -102,6 +102,20 @@ switch ($action) {
         echo json_encode($adminController->logout());
         break;
 
+    // NGROK CONTROLS (Solo Admin)
+    case 'start_ngrok':
+        checkAdmin();
+        echo json_encode($adminController->startNgrok());
+        break;
+    case 'stop_ngrok':
+        checkAdmin();
+        echo json_encode($adminController->stopNgrok());
+        break;
+    case 'get_ngrok_status':
+        checkAdmin();
+        echo json_encode($adminController->getNgrokUrl());
+        break;
+
     default:
         echo json_encode(['success' => false, 'message' => 'Acción no válida: ' . $action]);
 }
