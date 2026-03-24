@@ -311,7 +311,8 @@ const Admin = {
                         <td style="padding: 1rem;"><strong>${emp.name}</strong></td>
                         <td style="padding: 1rem;"><span style="background: var(--accent-pale); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">${this.getCompanyName(emp.company)}</span></td>
                         <td style="padding: 1rem; color: var(--muted);">${emp.department}</td>
-                        <td style="padding: 1rem; text-align: right;">
+                        <td style="padding: 1rem; text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                            <button onclick="Admin.editEmployee(${emp.id})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size: 0.7rem; text-transform:uppercase; letter-spacing:0.1em;">Editar</button>
                             <button onclick="Admin.deleteEmployee(${emp.id}, '${emp.name}')" style="background:none; border:none; color:var(--crimson); cursor:pointer; font-size: 0.7rem; text-transform:uppercase; letter-spacing:0.1em;">Eliminar</button>
                         </td>
                     `;
@@ -320,6 +321,87 @@ const Admin = {
             }
         } catch (e) {
             console.error("Error al cargar empleados");
+        }
+    },
+
+    async editEmployee(id) {
+        try {
+            const res = await fetch(`${this.apiBase}?action=get_employee&id=${id}`);
+            const data = await res.json();
+            
+            if (data.success) {
+                const emp = data.employee;
+                const { value: formValues } = await Swal.fire({
+                    title: 'Editar Candidato',
+                    html: `
+                        <div style="text-align: left;">
+                            <label style="font-size: 0.7rem; color: var(--muted); display: block; margin-bottom: 0.2rem;">Nombre Completo</label>
+                            <input id="swal-name" class="swal2-input" style="margin: 0 0 1rem 0; width: 100%; box-sizing: border-box;" value="${emp.name}">
+                            
+                            <label style="font-size: 0.7rem; color: var(--muted); display: block; margin-bottom: 0.2rem;">Empresa</label>
+                            <select id="swal-company" class="swal2-input" style="margin: 0 0 1rem 0; width: 100%; box-sizing: border-box;">
+                                <option value="Witmac" ${emp.company === 'Witmac' ? 'selected' : ''}>Witmac</option>
+                                <option value="RyP" ${emp.company === 'RyP' ? 'selected' : ''}>Recargalos y Pagalos</option>
+                            </select>
+                            
+                            <label style="font-size: 0.7rem; color: var(--muted); display: block; margin-bottom: 0.2rem;">Departamento</label>
+                            <input id="swal-dept" class="swal2-input" style="margin: 0 0 1rem 0; width: 100%; box-sizing: border-box;" value="${emp.department}">
+                            
+                            <label style="font-size: 0.7rem; color: var(--muted); display: block; margin-bottom: 0.2rem;">Nueva Foto (opcional)</label>
+                            <input id="swal-image" type="file" class="swal2-file" style="margin: 0; width: 100%;" accept="image/*">
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar Cambios',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#1e3a8a',
+                    preConfirm: () => {
+                        return {
+                            id: id,
+                            name: document.getElementById('swal-name').value,
+                            company: document.getElementById('swal-company').value,
+                            department: document.getElementById('swal-dept').value,
+                            image: document.getElementById('swal-image').files[0]
+                        }
+                    }
+                });
+
+                if (formValues) {
+                    this.updateEmployee(formValues);
+                }
+            }
+        } catch (e) {
+            App.showToast("Error al cargar datos del empleado", true);
+        }
+    },
+
+    async updateEmployee(values) {
+        const formData = new FormData();
+        formData.append('action', 'update_employee');
+        formData.append('id', values.id);
+        formData.append('name', values.name);
+        formData.append('company', values.company);
+        formData.append('department', values.department);
+        if (values.image) {
+            formData.append('image', values.image);
+        }
+
+        try {
+            const res = await fetch(this.apiBase, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.loadAdminEmployees();
+                this.loadPeriodResults(); // Actualizar resultados también si cambió el nombre
+                App.showToast("Empleado actualizado", false);
+            } else {
+                App.showToast(data.message || "Error al actualizar", true);
+            }
+        } catch (e) {
+            App.showToast("Error de conexión", true);
         }
     },
 

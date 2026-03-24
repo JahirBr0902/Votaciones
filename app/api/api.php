@@ -87,6 +87,15 @@ switch ($action) {
         checkAdmin();
         echo json_encode($controller->addEmployee($_POST, $_FILES));
         break;
+    case 'update_employee':
+        checkAdmin();
+        echo json_encode($controller->updateEmployee($_POST, $_FILES));
+        break;
+    case 'get_employee':
+        checkAdmin();
+        $id = $_GET['id'] ?? 0;
+        echo json_encode($controller->getEmployee($id));
+        break;
     case 'delete_employee':
         checkAdmin();
         $id = $input['id'] ?? 0;

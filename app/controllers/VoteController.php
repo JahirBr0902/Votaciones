@@ -84,6 +84,38 @@ class VoteController {
         return $this->model->addEmployee($name, $dept, $company, $imagePath);
     }
 
+    public function getEmployee($id) {
+        $employee = $this->model->getEmployeeById($id);
+        return ['success' => !empty($employee), 'employee' => $employee];
+    }
+
+    public function updateEmployee($post = null, $files = null) {
+        $id = $post['id'] ?? 0;
+        $name = $post['name'] ?? '';
+        $dept = $post['department'] ?? '';
+        $company = $post['company'] ?? 'Witmac';
+        $imagePath = null;
+
+        if (empty($id) || empty($name) || empty($dept)) {
+            return ['success' => false, 'message' => 'ID, nombre y departamento obligatorios'];
+        }
+
+        if ($files && isset($files['image']) && $files['image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../assets/img/empleados/';
+            $ext = strtolower(pathinfo($files['image']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+            
+            if (in_array($ext, $allowed)) {
+                $cleanName = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '_', $name)));
+                $fileName = $cleanName . '_' . time() . '.' . $ext;
+                if (move_uploaded_file($files['image']['tmp_name'], $uploadDir . $fileName)) {
+                    $imagePath = 'assets/img/empleados/' . $fileName;
+                }
+            }
+        }
+        return $this->model->updateEmployee($id, $name, $dept, $company, $imagePath);
+    }
+
     public function deleteEmployee($id) {
         return $this->model->deleteEmployee($id);
     }

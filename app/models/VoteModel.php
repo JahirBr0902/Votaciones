@@ -217,4 +217,37 @@ class VoteModel {
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
+
+    public function getEmployeeById($id) {
+        try {
+            $query = "SELECT id, name, department, company, image_path FROM employees WHERE id = ?";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            return null;
+        }
+    }
+
+    public function updateEmployee($id, $name, $department, $company, $imagePath = null) {
+        try {
+            $words = explode(" ", $name);
+            $avatar = "";
+            foreach ($words as $w) { $avatar .= mb_substr($w, 0, 1); }
+            $avatar = mb_strtoupper(mb_substr($avatar, 0, 2));
+
+            if ($imagePath) {
+                $query = "UPDATE employees SET name = ?, department = ?, company = ?, avatar_text = ?, image_path = ? WHERE id = ?";
+                $params = [$name, $department, $company, $avatar, $imagePath, $id];
+            } else {
+                $query = "UPDATE employees SET name = ?, department = ?, company = ?, avatar_text = ? WHERE id = ?";
+                $params = [$name, $department, $company, $avatar, $id];
+            }
+            
+            $stmt = $this->db->prepare($query);
+            return ['success' => $stmt->execute($params)];
+        } catch (\PDOException $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
 }

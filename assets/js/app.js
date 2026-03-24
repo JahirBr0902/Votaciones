@@ -1,7 +1,7 @@
 const App = {
     selectedWitmacId: null,
     selectedRyPId: null,
-    apiBase: 'app/api/api.php',
+    apiBase: window.location.pathname.includes('/admin/') ? '../app/api/api.php' : 'app/api/api.php',
     timerInterval: null,
     statusInterval: null,
     votingActive: false,
