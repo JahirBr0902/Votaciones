@@ -141,12 +141,12 @@ const App = {
             color = "var(--accent)";
             kickerResults = "Resultados Oficiales";
             kickerVote = "Votación Finalizada";
-            mainStatusStr = "Finalizada";
+            mainStatusStr = "Finalizadas";
         } else {
             statusStr = "CERRADO";
             subText = " En revisión de votos";
             color = "#dc2626";
-            kickerResults = "Resultados Cerrados";
+            kickerResults = "Cerradas";
             kickerVote = "Votación Cerrada";
             mainStatusStr = "En revisión";
         }
@@ -414,6 +414,24 @@ const App = {
     },
 
     async initResultsView() {
+        try {
+            const resStatus = await fetch(`${this.apiBase}?action=get_voting_status`);
+            const dataStatus = await resStatus.json();
+            this.votingActive = dataStatus.active;
+
+            const resWinner = await fetch(`${this.apiBase}?action=get_show_winner`);
+            const dataWinner = await resWinner.json();
+            this.winnerModeActive = dataWinner.show_winner;
+
+            this.updateHeaderStatus(this.votingActive, this.winnerModeActive);
+
+            // Ocultar aviso de privacidad si hay ganadores activos
+            const privacyNotice = document.getElementById('privacy-notice-results');
+            if (privacyNotice) {
+                privacyNotice.style.display = this.winnerModeActive ? 'none' : 'flex';
+            }
+        } catch (e) {}
+
         await this.loadResults();
         this.initTimer();
         const btnRefresh = document.getElementById('btn-refresh');
@@ -528,7 +546,7 @@ const App = {
                 container.innerHTML = `
                     <div class="winner-announcement animate-in" style="text-align: center; padding: 2rem; background: var(--card-bg); border: 3px double var(--accent);">
                         <p class="kicker" id="results-kicker">Resultados Oficiales</p>
-                        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 4rem;"><span id="results-status">Finalizada</span></h2>
+                        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 4rem;"><span id="results-status">Finalizadas</span></h2>
                         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem;">${html}</div>
                         <div style="margin-top: 3rem;"><a href="#results" class="btn-refresh">Ver Tabla de Resultados</a></div>
                     </div>`;
