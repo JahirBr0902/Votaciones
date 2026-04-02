@@ -138,10 +138,12 @@ class VoteModel {
                     'rank' => $display_rank
                 ];
 
-                if (!$publicMode || ($revealWinner && $display_rank === 1)) {
+                if (!$publicMode || $revealWinner) {
                     $item['name'] = $row['name'];
                     $item['image'] = $row['image_path'];
                     $item['avatar'] = $row['avatar_text'];
+                    // Si estamos revelando todo, el alias ya no es necesario o puede ser el nombre
+                    $item['alias'] = $row['name'];
                 } else {
                     $item['avatar'] = '??';
                 }
