@@ -56,8 +56,37 @@ const Admin = {
                 if (winnerToggle) winnerToggle.checked = dataWinner.show_winner;
                 if (winnerText) winnerText.textContent = dataWinner.show_winner ? 'VISIBLE' : 'OCULTO';
             }
+
+            // Cargar periodo del ganador configurado
+            const resWinPeriod = await fetch(`${this.apiBase}?action=get_winner_period`);
+            const dataWinPeriod = await resWinPeriod.json();
+            if (dataWinPeriod.success) {
+                const mSelect = document.getElementById('winner-month');
+                const ySelect = document.getElementById('winner-year');
+                if (mSelect) mSelect.value = dataWinPeriod.period.month;
+                if (ySelect) ySelect.value = dataWinPeriod.period.year;
+            }
         } catch (e) {
             console.error("Error al cargar estado");
+        }
+    },
+
+    async saveWinnerPeriod() {
+        const month = document.getElementById('winner-month').value;
+        const year = document.getElementById('winner-year').value;
+        
+        try {
+            const res = await fetch(this.apiBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'set_winner_period', month, year })
+            });
+            const data = await res.json();
+            if (data.success) {
+                App.showToast("Periodo de ganador actualizado", false);
+            }
+        } catch (e) {
+            App.showToast("Error al guardar periodo", true);
         }
     },
 
@@ -183,9 +212,13 @@ const Admin = {
 
     async viewReasons(employeeId = null, name = "Todos") {
         try {
-            const url = employeeId 
-                ? `${this.apiBase}?action=get_reasons&employee_id=${employeeId}`
-                : `${this.apiBase}?action=get_reasons`;
+            const month = document.getElementById('filter-month').value;
+            const year = document.getElementById('filter-year').value;
+            
+            let url = `${this.apiBase}?action=get_reasons&month=${month}&year=${year}`;
+            if (employeeId) {
+                url += `&employee_id=${employeeId}`;
+            }
             
             const res = await fetch(url);
             const data = await res.json();
@@ -232,6 +265,51 @@ const Admin = {
             }
         } catch (e) {
             App.showToast("Error al cargar motivos", true);
+        }
+    },
+
+    async viewPeriodWinners() {
+        const month = document.getElementById('filter-month').value;
+        const year = document.getElementById('filter-year').value;
+        
+        try {
+            // Reutilizamos la lógica de obtener resultados para administradores (que revela nombres)
+            const res = await fetch(`${this.apiBase}?action=get_results&month=${month}&year=${year}`);
+            const data = await res.json();
+            
+            if (data.success && data.results.length > 0) {
+                const winners = data.results.filter(r => r.rank === 1 && r.votes > 0);
+                
+                if (winners.length === 0) {
+                    Swal.fire('Sin ganadores', 'No hay votos registrados en este periodo.', 'info');
+                    return;
+                }
+
+                let html = '<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; padding: 1rem;">';
+                winners.forEach(w => {
+                    html += `
+                        <div style="border: 2px solid var(--accent); padding: 1.5rem; background: white; width: 250px; text-align: center;">
+                            <div class="avatar-img" style="width: 100px; height: 120px; border-radius: 8px; margin: 0 auto 1rem; background-image: url(\'../${w.image || 'assets/img/empleados/default.jpg'}\')"></div>
+                            <h3 style="font-family: \'Bebas Neue\', sans-serif; font-size: 1.8rem; margin: 0.5rem 0;">${w.name}</h3>
+                            <p style="text-transform: uppercase; font-size: 0.7rem; color: var(--muted); margin: 0;">${w.company} — ${w.department}</p>
+                            <div style="margin-top: 1rem; font-family: \'Bebas Neue\', sans-serif; font-size: 1.2rem; color: var(--accent);">${w.votes} VOTOS</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                Swal.fire({
+                    title: `Ganadores: ${month}/${year}`,
+                    html: html,
+                    width: '800px',
+                    confirmButtonColor: '#1e3a8a',
+                    confirmButtonText: 'Cerrar'
+                });
+            } else {
+                Swal.fire('Sin datos', 'No se encontraron resultados para este periodo.', 'info');
+            }
+        } catch (e) {
+            App.showToast("Error al cargar ganadores", true);
         }
     },
 

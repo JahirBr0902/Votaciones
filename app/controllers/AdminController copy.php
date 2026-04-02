@@ -57,6 +57,19 @@ class AdminController
         return $this->model->getShowWinner();
     }
 
+    public function getWinnerPeriod() {
+        // ACCESO PÚBLICO
+        return ['success' => true, 'period' => $this->model->getWinnerPeriod()];
+    }
+
+    public function setWinnerPeriod() {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $month = $input['month'] ?? date('m');
+        $year = $input['year'] ?? date('Y');
+        $this->model->setWinnerPeriod($month, $year);
+        return ['success' => true, 'message' => 'Periodo de ganador actualizado'];
+    }
+
     public function toggleShowWinner()
     {
         $input = json_decode(file_get_contents('php://input'), true);

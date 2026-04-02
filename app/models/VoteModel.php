@@ -192,10 +192,10 @@ class VoteModel {
         }
     }
 
-    public function getReasons($employeeId = null) {
+    public function getReasons($employeeId = null, $month = null, $year = null) {
         try {
-            $month = date('m');
-            $year = date('Y');
+            $month = $month ?? date('m');
+            $year = $year ?? date('Y');
             $sql = "SELECT v.reason, e.name as candidate, v.voted_at 
                     FROM votes v 
                     JOIN employees e ON v.employee_id = e.id 

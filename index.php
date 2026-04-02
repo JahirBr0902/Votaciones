@@ -17,7 +17,7 @@ $mesActual = $meses[date('n')-1];
 
 <header>
     <div class="masthead">
-        <div class="vol-info"><?php echo $mesActual; ?> — Edición Mensual · <?php echo date('Y'); ?></div>
+        <div class="vol-info" id="current-period-text"><?php echo $mesActual; ?> — Edición Mensual · <?php echo date('Y'); ?></div>
         <div class="site-title"> VOTACIONES <span>TMAC</span></div>
     </div>
     <div id="header-meta-container">

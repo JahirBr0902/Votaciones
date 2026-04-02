@@ -70,14 +70,22 @@ const App = {
 
         const container = document.getElementById('employees-container');
         try {
+            // Sincronizar el periodo primero
+            const resResults = await fetch(`${this.apiBase}?action=get_results`);
+            const dataResults = await resResults.json();
+            if (dataResults.success) {
+                this.updateHeaderPeriod(dataResults.period);
+            }
+
             const resStatus = await fetch(`${this.apiBase}?action=get_voting_status`);
             const dataStatus = await resStatus.json();
             this.votingActive = dataStatus.active;
-            this.updateHeaderStatus(dataStatus.active);
 
             const resWinner = await fetch(`${this.apiBase}?action=get_show_winner`);
             const dataWinner = await resWinner.json();
             this.winnerModeActive = dataWinner.show_winner;
+
+            this.updateHeaderStatus(this.votingActive, this.winnerModeActive);
 
             if (dataWinner.success && dataWinner.show_winner) {
                 this.renderWinnerMode();
@@ -103,14 +111,65 @@ const App = {
         }
     },
 
-    updateHeaderStatus(active) {
+    updateHeaderStatus(active, winnerMode = false) {
         const headerStatus = document.querySelector('.header-meta strong');
         const headerText = document.querySelector('.header-meta')?.childNodes[2];
-        if (headerStatus) {
-            headerStatus.textContent = active ? 'ACTIVO' : 'CERRADO';
-            headerStatus.style.color = active ? 'var(--company-blue)' : 'var(--muted)';
-            if(headerText) headerText.textContent = active ? ' Elección en curso' : ' Votaciones finalizadas';
+        const resultsKicker = document.getElementById('results-kicker');
+        const resultsStatus = document.getElementById('results-status');
+        const voteKicker = document.getElementById('vote-kicker');
+        const voteStatus = document.getElementById('vote-status');
+
+        let statusStr = "CERRADO";
+        let subText = " Votaciones finalizadas";
+        let color = "var(--muted)";
+        
+        // Textos para el cuerpo de Resultados
+        let kickerResults = "Resultados Parciales";
+        let kickerVote = "Convocatoria Oficial";
+        let mainStatusStr = "En progreso";
+
+        if (active) {
+            statusStr = "ACTIVO";
+            subText = " Elección en curso";
+            color = "var(--company-blue)";
+            kickerResults = "Resultados Parciales";
+            kickerVote = "Convocatoria Oficial";
+            mainStatusStr = "En progreso";
+        } else if (winnerMode) {
+            statusStr = "FINALIZADA";
+            subText = " Elección concluida";
+            color = "var(--accent)";
+            kickerResults = "Resultados Oficiales";
+            kickerVote = "Votación Finalizada";
+            mainStatusStr = "Finalizada";
+        } else {
+            statusStr = "CERRADO";
+            subText = " En revisión de votos";
+            color = "#dc2626";
+            kickerResults = "Resultados Cerrados";
+            kickerVote = "Votación Cerrada";
+            mainStatusStr = "En revisión";
         }
+
+        if (headerStatus) {
+            headerStatus.textContent = statusStr;
+            headerStatus.style.color = color;
+            if(headerText) headerText.textContent = subText;
+        }
+
+        if (resultsKicker) resultsKicker.textContent = kickerResults;
+        if (resultsStatus) resultsStatus.textContent = mainStatusStr;
+        if (voteKicker) voteKicker.textContent = kickerVote;
+        if (voteStatus) voteStatus.textContent = mainStatusStr.toLowerCase();
+    },
+
+    updateHeaderPeriod(periodStr) {
+        if (!periodStr) return;
+        const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const [m, y] = periodStr.split('/');
+        const monthName = months[parseInt(m) - 1];
+        const headerPeriod = document.getElementById('current-period-text');
+        if (headerPeriod) headerPeriod.textContent = `${monthName} — Edición Mensual · ${y}`;
     },
 
     renderEmployees(list) {
@@ -369,11 +428,19 @@ const App = {
         try {
             const res = await fetch(`${this.apiBase}?action=get_results`);
             const data = await res.json();
-            if (data.success) this.renderResults(data.results, data.total);
+            if (data.success) this.renderResults(data.results, data.total, data.period);
         } catch (e) {}
     },
 
-    renderResults(results, total) {
+    renderResults(results, total, periodStr = null) {
+        if (periodStr) {
+            const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const [m, y] = periodStr.split('/');
+            const monthName = months[parseInt(m) - 1];
+            const headerPeriod = document.getElementById('current-period-text');
+            if (headerPeriod) headerPeriod.textContent = `${monthName} — Edición Mensual · ${y}`;
+        }
+
         const container = document.getElementById('results-container');
         if (!container) return;
         const statsBar = document.getElementById('stats-bar');
@@ -434,6 +501,9 @@ const App = {
             const res = await fetch(`${this.apiBase}?action=get_results`);
             const data = await res.json();
             if (data.success && data.results.length > 0) {
+                // Sincronizar cabecera
+                this.updateHeaderPeriod(data.period);
+
                 const winners = data.results.filter(r => r.rank === 1);
                 let html = '';
                 winners.forEach(w => {
@@ -447,7 +517,7 @@ const App = {
                             
                             <div class="reasons-ticker" id="ticker-${w.id}">
                                 <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Feedback de los votantes:</div>
-                                <div class="ticker-content"></div>
+                                <div class="ticker-content" style="min-height: 3em;"></div>
                             </div>
 
                             <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
@@ -457,45 +527,67 @@ const App = {
                 });
                 container.innerHTML = `
                     <div class="winner-announcement animate-in" style="text-align: center; padding: 2rem; background: var(--card-bg); border: 3px double var(--accent);">
-                        <p class="kicker">Elección Finalizada</p>
-                        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 4rem;">¡Tenemos Ganadores!</h2>
+                        <p class="kicker" id="results-kicker">Resultados Oficiales</p>
+                        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 4rem;"><span id="results-status">Finalizada</span></h2>
                         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem;">${html}</div>
                         <div style="margin-top: 3rem;"><a href="#results" class="btn-refresh">Ver Tabla de Resultados</a></div>
                     </div>`;
 
-                // Iniciar los tickers para cada ganador
-                winners.forEach(w => this.startReasonsTicker(w.id));
+                // Iniciar los tickers con el periodo correcto
+                const [month, year] = data.period.split('/');
+                winners.forEach(w => this.startReasonsTicker(w.id, month, year));
             }
         } catch (e) {}
     },
 
-    async startReasonsTicker(employeeId) {
+    async startReasonsTicker(employeeId, month = null, year = null) {
         try {
-            const res = await fetch(`${this.apiBase}?action=get_public_reasons&employee_id=${employeeId}`);
+            let url = `${this.apiBase}?action=get_public_reasons&employee_id=${employeeId}`;
+            if (month && year) url += `&month=${month}&year=${year}`;
+            
+            const res = await fetch(url);
             const data = await res.json();
             if (data.success && data.reasons.length > 0) {
                 const container = document.querySelector(`#ticker-${employeeId} .ticker-content`);
                 if (!container) return;
 
                 let index = 0;
-                const showNextReason = () => {
-                    const r = data.reasons[index];
-                    const bubble = document.createElement('div');
-                    bubble.className = 'reason-bubble';
-                    bubble.textContent = `"${r.reason}"`;
+                const showReasons = () => {
+                    container.innerHTML = ''; // Limpiar contenedor
                     
-                    container.appendChild(bubble);
-                    
-                    // Mantener solo los últimos 3 mensajes visibles para no saturar
-                    if (container.children.length > 3) {
-                        container.removeChild(container.firstChild);
+                    // Mostrar hasta 2 comentarios
+                    for (let i = 0; i < 2; i++) {
+                        const r = data.reasons[(index + i) % data.reasons.length];
+                        if (i > 0 && data.reasons.length === 1) break; // No repetir si solo hay uno
+
+                        const bubble = document.createElement('div');
+                        bubble.className = 'reason-bubble animate-in';
+                        bubble.style = `
+                            font-size: 0.75rem; 
+                            font-style: italic; 
+                            color: var(--ink); 
+                            margin-bottom: 0.6rem; 
+                            padding: 0.6rem; 
+                            background: var(--paper); 
+                            border-left: 3px solid var(--accent);
+                            box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+                            animation-delay: ${i * 0.2}s;
+                        `;
+                        bubble.textContent = `"${r.reason}"`;
+                        container.appendChild(bubble);
                     }
 
-                    index = (index + 1) % data.reasons.length;
+                    // Avanzar de 2 en 2 si hay muchos, o de 1 en 1
+                    index = (index + (data.reasons.length > 1 ? 1 : 1)) % data.reasons.length;
                 };
 
-                showNextReason(); // Mostrar el primero inmediatamente
-                setInterval(showNextReason, 4000); // Cambiar cada 4 segundos
+                showReasons(); 
+                if (data.reasons.length > 2) {
+                    setInterval(showReasons, 4000); // Rotar cada 3 segundos si hay más de 2
+                }
+            } else {
+                const container = document.querySelector(`#ticker-${employeeId} .ticker-content`);
+                if (container) container.innerHTML = '<div style="font-size: 0.7rem; color: var(--muted);">Sin comentarios este periodo.</div>';
             }
         } catch (e) {}
     },

@@ -87,6 +87,22 @@ $anioActual = date('Y');
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.8rem;">
+                        <label style="font-size: 0.6rem; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 0.3rem;">Periodo a mostrar:</label>
+                        <div style="display: flex; gap: 0.3rem;">
+                            <select id="winner-month" class="select-control" style="font-size: 0.7rem; padding: 0.2rem;">
+                                <?php foreach($meses as $i => $m): ?>
+                                    <option value="<?php echo sprintf('%02d', $i+1); ?>"><?php echo $m; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select id="winner-year" class="select-control" style="font-size: 0.7rem; padding: 0.2rem;">
+                                <?php for($y = $anioActual; $y >= 2024; $y--): ?>
+                                    <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
+                                <?php endfor; ?>
+                            </select>
+                            <button onclick="Admin.saveWinnerPeriod()" class="btn-filter" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">OK</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="control-card">
@@ -194,6 +210,7 @@ $anioActual = date('Y');
                     </select>
                 </div>
                 <button onclick="Admin.loadPeriodResults()" class="btn-filter">Consultar</button>
+                <button onclick="Admin.viewPeriodWinners()" class="btn-filter" style="background: var(--company-blue);">Ver Ganadores</button>
                 <button onclick="Admin.viewReasons()" class="btn-filter" style="background: var(--ink); margin-left: auto;">Ver Motivos</button>
             </div>
 

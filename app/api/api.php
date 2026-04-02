@@ -61,6 +61,13 @@ switch ($action) {
     case 'get_show_winner':
         echo json_encode(['success' => true, 'show_winner' => $adminController->getShowWinner()]);
         break;
+    case 'get_winner_period':
+        echo json_encode($adminController->getWinnerPeriod());
+        break;
+    case 'set_winner_period':
+        checkAdmin();
+        echo json_encode($adminController->setWinnerPeriod());
+        break;
     case 'login':
         $username = $input['username'] ?? '';
         $password = $input['password'] ?? '';

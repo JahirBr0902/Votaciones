@@ -45,10 +45,23 @@ class VoteController {
     public function getResults() {
         if (session_status() === PHP_SESSION_NONE) session_start();
         $adminModel = new AdminModel();
-        $month = $_GET['month'] ?? date('m');
-        $year = $_GET['year'] ?? date('Y');
+        
+        $month = $_GET['month'] ?? null;
+        $year = $_GET['year'] ?? null;
         $isAdmin = isset($_SESSION['admin_id']);
         $revealWinner = $adminModel->getShowWinner();
+
+        // Si es vista pública y modo ganador está ON, y NO se pidió un mes específico,
+        // forzamos el periodo que el admin configuró para mostrar.
+        if (!$isAdmin && $revealWinner && empty($month)) {
+            $period = $adminModel->getWinnerPeriod();
+            $month = $period['month'];
+            $year = $period['year'];
+        }
+
+        $month = $month ?? date('m');
+        $year = $year ?? date('Y');
+
         return $this->model->getResults(!$isAdmin, $month, $year, $revealWinner);
     }
 
@@ -121,6 +134,8 @@ class VoteController {
     }
 
     public function getReasons($employeeId = null) {
-        return $this->model->getReasons($employeeId);
+        $month = $_GET['month'] ?? null;
+        $year = $_GET['year'] ?? null;
+        return $this->model->getReasons($employeeId, $month, $year);
     }
 }

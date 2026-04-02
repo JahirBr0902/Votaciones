@@ -69,6 +69,37 @@ class AdminModel {
         return $stmt->fetchColumn() === '1';
     }
 
+    public function getWinnerPeriod() {
+        $query = "SELECT key, value FROM settings WHERE key IN ('winner_month', 'winner_year')";
+        $stmt = $this->db->query($query);
+        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        return [
+            'month' => $settings['winner_month'] ?? date('m'),
+            'year' => $settings['winner_year'] ?? date('Y')
+        ];
+    }
+
+    public function setWinnerPeriod($month, $year) {
+        $this->db->prepare("INSERT INTO settings (key, value) VALUES ('winner_month', ?), ('winner_year', ?) 
+                            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value")
+                 ->execute([$month, $year]);
+        
+        // Versión compatible con PostgreSQL si el anterior falla por la estructura de settings (key es PK)
+        $stmt = $this->db->prepare("UPDATE settings SET value = ? WHERE key = ?");
+        $stmt->execute([$month, 'winner_month']);
+        if ($stmt->rowCount() == 0) {
+            $this->db->prepare("INSERT INTO settings (key, value) VALUES ('winner_month', ?)")->execute([$month]);
+        }
+        
+        $stmt = $this->db->prepare("UPDATE settings SET value = ? WHERE key = ?");
+        $stmt->execute([$year, 'winner_year']);
+        if ($stmt->rowCount() == 0) {
+            $this->db->prepare("INSERT INTO settings (key, value) VALUES ('winner_year', ?)")->execute([$year]);
+        }
+        return true;
+    }
+
     public function setShowWinner($status) {
         $value = $status ? '1' : '0';
         $query = "UPDATE settings SET value = ? WHERE key = 'show_winner'";
